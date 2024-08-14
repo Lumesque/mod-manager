@@ -31,6 +31,9 @@ Documentation = "https://github.com/Joshua Luckie/mod-manager#readme"
 Issues = "https://github.com/Joshua Luckie/mod-manager/issues"
 Source = "https://github.com/Joshua Luckie/mod-manager"
 
+[project.scripts]
+tmm = "mod_manager:_main"
+
 [tool.hatch.version]
 path = "src/mod_manager/__about__.py"
 
