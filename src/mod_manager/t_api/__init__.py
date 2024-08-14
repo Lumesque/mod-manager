@@ -31,6 +31,22 @@ class ModVersion:
     def __post_init__(self):
         self.date_created = datetime.fromisoformat(self.date_created)
 
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "full_name": self.full_name,
+            "description": self.description,
+            "version_number": self.version_number,
+            "dependencies": self.dependencies,
+            "download_url": self.download_url,
+            "downloads": self.downloads,
+            "date_created": self.date_created.isoformat(),
+            "website_url": self.website_url,
+            "is_active": self.is_active,
+            "uuid4": self.uuid4,
+            "file_size": self.file_size
+        }
+
 class Mod(UserDict):
     def get_latest(self):
         return self.data["versions"][0]

@@ -1,7 +1,8 @@
-from dataclasses import dataclass, field
-from collections import Counter, defaultdict
+from dataclasses import dataclass, field, asdict
+from collections import Counter, defaultdict, namedtuple
 from pathlib import Path
-from ..t_api import ThunderstoreAPI
+from ..t_api import ThunderstoreAPI, ModVersion
+from ..exceptions import PackageMissing
 import warnings
 import requests
 import zipfile
@@ -10,8 +11,28 @@ import io
 import os
 import tempfile
 import shutil
-from typing import List, Dict, ClassVar, Optional
+import json
+from typing import List, Dict, ClassVar, Optional, NamedTuple
 from functools import reduce
+
+class VersionList(NamedTuple):
+    versions: List[ModVersion]
+    ignored_dependencies: Optional[List[str]]
+
+    @classmethod
+    def from_file(cls, json_file):
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+        ignored_dependencies = data.pop('ignored_dependencies')
+        return cls(versions=[ModVersion(**data[x]) for x in data], ignored_dependencies=ignored_dependencies)
+
+    def to_dict(self):
+        out = {}
+        for vers in self.versions:
+            out[vers.full_name] = vers.to_dict()
+        out['ignored_dependencies'] = self.ignored_dependencies
+        return out
+
 
 @dataclass
 class ModDownloader:
@@ -20,9 +41,8 @@ class ModDownloader:
     use_latest_date: bool = True
 
     def download(self, list_of_versions, output_directory):
-        #path = Path(t, "BepInEx", "plugins")
-        #path.mkdir(exist_ok=True, parents=True)
-        with click.progressbar(list_of_versions, item_show_func = lambda x: x.name if x is not None else "", label='Downloading mod') as _list:
+        _verses = list_of_versions.versions
+        with click.progressbar(_verses, item_show_func = lambda x: x.name if x is not None else "", label='Downloading mod') as _list:
             for version in _list:
                 download_url = version.download_url
                 r = requests.get(download_url, stream=True)
@@ -31,14 +51,19 @@ class ModDownloader:
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(output_directory)
 
-    def get_download_list_by_name(self, list_of_mods):
+    def get_download_list_by_name(self, list_of_mods, ignore_dependencies=None):
         mod_names = [self._get_mod_by_name(mod_name) for mod_name in list_of_mods]
-        mod_names = self.handle_dependencies(mod_names)
+        mod_names = self.handle_dependencies(mod_names, ignore_dependencies)
         out = [
             self.api.get_package_by_fullname(f"{owner}-{name}", owner=owner, version=version)
             for owner, name, version in [x.split('-') for x in set(mod_names)]
         ]
-        return reduce(lambda x,y: x+y, out)
+        return VersionList(reduce(lambda x,y: x+y, out), ignore_dependencies)
+
+    def save_version_json(self, version_list, output_dir):
+        with open(os.path.join(output_dir, "versions.json"), "w") as f:
+            json.dump(version_list.to_dict(), f, indent=4)
+
 
     def _get_mod_by_name(self, mod_name):
         # There is no support for spaces, so use this instead
@@ -65,11 +90,13 @@ class ModDownloader:
         else:
             return out[0]
 
-    def handle_dependencies(self, downloadable_mods):
+    def handle_dependencies(self, downloadable_mods, ignore_dependencies=None):
         keys = [x["full_name"] for x in downloadable_mods]
         dependencies = []
         for mod in downloadable_mods:
             latest = mod.get_latest()
+            if latest.name in ignore_dependencies:
+                continue
             dependencies.extend(latest.dependencies)
         #self.check_conflicting_versions(dependencies)
         dependencies.extend([
