@@ -1,9 +1,12 @@
+from collections import UserDict, defaultdict
 from dataclasses import dataclass, field, fields
-from typing import TypeVar, Union, List, Dict
-from collections import defaultdict, UserDict
 from datetime import datetime
+from typing import Dict, List, TypeVar, Union
+
 import requests
+
 from ..exceptions import InvalidVersion, PackageMissing
+
 
 def cache_if_hasnt(func):
     def method(cls, *args, **kwargs):
@@ -11,7 +14,9 @@ def cache_if_hasnt(func):
             cls._cache_pkg_by_name()
             cls._has_cached_name = True
         return func(cls, *args, **kwargs)
+
     return method
+
 
 @dataclass
 class ModVersion:
@@ -44,8 +49,9 @@ class ModVersion:
             "website_url": self.website_url,
             "is_active": self.is_active,
             "uuid4": self.uuid4,
-            "file_size": self.file_size
+            "file_size": self.file_size,
         }
+
 
 class Mod(UserDict):
     def get_latest(self):
@@ -55,7 +61,7 @@ class Mod(UserDict):
     def versions(self):
         return [x.version_number for x in self.data["versions"]]
 
-    def get_version(self, version: str) -> Union['Mod', None]:
+    def get_version(self, version: str) -> Union["Mod", None]:
         _vers = [x for x in self.data["versions"] if x.version_number == version]
         if not _vers:
             return None
@@ -65,6 +71,7 @@ class Mod(UserDict):
     def has_version(self, version: str):
         return True if version in self.versions else False
 
+
 @dataclass
 class ThunderstoreAPI:
     community: str
@@ -73,7 +80,7 @@ class ThunderstoreAPI:
     community_url: str = field(init=False)
     package_url: str = field(init=False, repr=False)
     package_index: List[Dict] = field(init=False, repr=False)
-    _cache_index_by_name: dict = field(default_factory=lambda : defaultdict(list), repr=False, init=False)
+    _cache_index_by_name: dict = field(default_factory=lambda: defaultdict(list), repr=False, init=False)
     _cache_index_by_fullname: dict = field(default_factory=dict, repr=False, init=False)
     _has_cached_name: bool = field(repr=False, init=False)
 
@@ -102,38 +109,45 @@ class ThunderstoreAPI:
             pkg_dict = pkg_dict.copy()
         version_attrs = [x.name for x in fields(ModVersion)]
         versions = []
-        for _version in pkg_dict['versions']:
+        for _version in pkg_dict["versions"]:
             arguments = {key: value for key, value in _version.items() if key in version_attrs}
             versions.append(ModVersion(**arguments))
-        pkg_dict['versions'] = versions
+        pkg_dict["versions"] = versions
         return pkg_dict
 
     def _cache_pkg_by_name(self):
         # Names are not exclusive, use index instead for later grabbing
         for i, _obj in enumerate(self.package_index):
-            pkg_name = _obj['name']
+            pkg_name = _obj["name"]
             self._cache_index_by_name[pkg_name].append(i)
 
     @cache_if_hasnt
     def get_packages_by_name(self, name, return_deprecated=False):
         # We can get multiple package names, so cacheing becomes difficult
         pkgs = [self.package_index[i] for i in self._cache_index_by_name[name] if name in self._cache_index_by_name]
-        return [self._parse_pkg_item(_maybe_deprecated, copy=True) for _maybe_deprecated in pkgs if (return_deprecated or not _maybe_deprecated["is_deprecated"])]
+        return [
+            self._parse_pkg_item(_maybe_deprecated, copy=True)
+            for _maybe_deprecated in pkgs
+            if (return_deprecated or not _maybe_deprecated["is_deprecated"])
+        ]
 
     def get_package_by_fullname(self, fullname, version, owner=None):
         vers_name = fullname + version
-        _items = self.get_packages_by_name(fullname.split('-')[1], return_deprecated=True)
+        _items = self.get_packages_by_name(fullname.split("-")[1], return_deprecated=True)
         for item in _items:
             if matches(item, fullname, owner):
                 vers = item.get_version(version)
                 if vers is None:
-                    raise InvalidVersion(f"Could not find a version {version} for {fullname}, available_versions: {item.versions}")
+                    raise InvalidVersion(
+                        f"Could not find a version {version} for {fullname}, available_versions: {item.versions}"
+                    )
                 return vers
         raise PackageMissing(f"Could not find a package with fullname {fullname} and owner {owner}")
 
     def log(self, msg):
         if self.verbose:
             print(msg)
+
 
 def matches(_dict, full_name, owner=None):
     matches = []
