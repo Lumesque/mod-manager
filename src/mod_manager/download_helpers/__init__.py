@@ -2,19 +2,17 @@ import io
 import json
 import os
 import shutil
-import tempfile
 import warnings
 import zipfile
-from collections import Counter, defaultdict, namedtuple
-from dataclasses import asdict, dataclass, field
+from collections import Counter
+from dataclasses import dataclass
 from functools import reduce
-from pathlib import Path
-from typing import ClassVar, Dict, List, NamedTuple, Optional
+from typing import List, NamedTuple, Optional
 
 import click
 import requests
 
-from ..exceptions import PackageMissing
+from ..exceptions import PackageMissingError
 from ..t_api import ModVersion, ThunderstoreAPI
 
 
@@ -50,7 +48,7 @@ class ModDownloader:
         ) as _list:
             for version in _list:
                 download_url = version.download_url
-                r = requests.get(download_url, stream=True)
+                r = requests.get(download_url, stream=True, timeout=10)
                 if not r.ok:
                     raise ValueError(f"Could not download from {download_url}")
                 z = zipfile.ZipFile(io.BytesIO(r.content))
@@ -78,24 +76,20 @@ class ModDownloader:
             if self.try_deprecated:
                 out = api.get_packages_by_name(mod_name, return_deprecated=True)
                 if len(out) < 1:
-                    raise PackageMissing(mod_name)
-                else:
-                    msg = f"{mod_name} is deprecated, this may not work! Using latest version found"
-                    warnings.warn(msg)
-                    return sorted(out, key=lambda x: x.get_latest().date_created)[-1]
-            else:
-                raise PackageMissing(mod_name)
+                    raise PackageMissingError(mod_name)
+                msg = f"{mod_name} is deprecated, this may not work! Using latest version found"
+                warnings.warn(msg, stacklevel=2)
+                return sorted(out, key=lambda x: x.get_latest().date_created)[-1]
+            raise PackageMissingError(mod_name)
         elif len(out) > 1:
             if self.use_latest_date:
-                warnings.warn(f"{mod_name} had multiple collision names, using one with latest date")
+                warnings.warn(f"{mod_name} had multiple collision names, using one with latest date", stacklevel=2)
                 return sorted(out, key=lambda x: x.get_latest().date_created)[-1]
             else:
-                raise ValueError(f"Got multiple versions/names for {mod}, try using full name instead")
-        else:
-            return out[0]
+                raise ValueError(f"Got multiple versions/names for {mod_name}, try using full name instead")
+        return out[0]
 
     def handle_dependencies(self, downloadable_mods, ignore_dependencies=None):
-        keys = [x["full_name"] for x in downloadable_mods]
         dependencies = []
         for mod in downloadable_mods:
             latest = mod.get_latest()
@@ -107,15 +101,14 @@ class ModDownloader:
         self.check_conflicting_versions(dependencies)
         return dependencies
 
-    def check_conflicting_versions(self, full_name_list: List[str], ignore=False):
+    def check_conflicting_versions(self, full_name_list: List[str], ignore: bool=False ):
         full_names = set(full_name_list)
         conflicts = Counter(["-".join(x.split("-")[:-1]) for x in full_names])
-        return_set = set()
         for key, count in conflicts.items():
             if count > 1:
                 corresponding_versions = {x for x in full_names if key in x}
                 if not ignore:
-                    raise ValueError(f"Found conflicting versions for {key}, got={corresponding_values}")
+                    raise ValueError(f"Found conflicting versions for {key}, got={corresponding_versions}")
 
 
 # Taken from online

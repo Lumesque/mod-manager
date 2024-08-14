@@ -1,11 +1,11 @@
 from collections import UserDict, defaultdict
 from dataclasses import dataclass, field, fields
 from datetime import datetime
-from typing import Dict, List, TypeVar, Union
+from typing import Dict, List, Union
 
 import requests
 
-from ..exceptions import InvalidVersion, PackageMissing
+from ..exceptions import InvalidVersionError, PackageMissingError
 
 
 def cache_if_hasnt(func):
@@ -96,8 +96,8 @@ class ThunderstoreAPI:
 
     def _load_package_index(self) -> List:
         self.log("Getting index url...")
-        r = requests.get(self.package_url)
-        if r.status_code != 200:
+        r = requests.get(self.package_url, timeout=10)
+        if not r.ok:
             self.log(f"Error::{r.status_code}")
             return []
         self.log("Success")
@@ -132,17 +132,16 @@ class ThunderstoreAPI:
         ]
 
     def get_package_by_fullname(self, fullname, version, owner=None):
-        vers_name = fullname + version
         _items = self.get_packages_by_name(fullname.split("-")[1], return_deprecated=True)
         for item in _items:
             if matches(item, fullname, owner):
                 vers = item.get_version(version)
                 if vers is None:
-                    raise InvalidVersion(
+                    raise InvalidVersionError(
                         f"Could not find a version {version} for {fullname}, available_versions: {item.versions}"
                     )
                 return vers
-        raise PackageMissing(f"Could not find a package with fullname {fullname} and owner {owner}")
+        raise PackageMissingError(f"Could not find a package with fullname {fullname} and owner {owner}")
 
     def log(self, msg):
         if self.verbose:

@@ -2,18 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 
-import io
-import json
-import zipfile
 from datetime import datetime
 from pathlib import Path
 
 import click
-import requests
 
 from .__about__ import __version__
 from .download_helpers import ModDownloader, VersionList
-from .t_api import ModVersion, ThunderstoreAPI
+from .t_api import ThunderstoreAPI
 
 
 @click.group()
