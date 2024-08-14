@@ -68,6 +68,48 @@ def _main(ctx, quiet, community, file, package, output_directory, no_save, ignor
     ctx.obj["OUTPUT_DIRECTORY"] = output_dir
     ctx.obj["SAVE"] = not no_save
 
+@_main.command()
+@click.argument('mod_name', nargs=-1)
+@click.option('-l', '--only-latest', is_flag=True, default=False, help="Only download the latest version")
+@click.option('-n', '--no-suppress', is_flag=True, default=False, help="Show the output of the found package in json format as oppossed to JUST the details of the package")
+@click.option('--show-all', is_flag=True, default=False, help="Show all found variants of the package")
+@click.pass_context
+def search(ctx, mod_name, only_latest, no_suppress, show_all):
+    "Search for mods in the thunderstore.io website"
+    from pprint import pprint
+    api = ThunderstoreAPI(ctx.obj["COMMUNITY"], verbose=False)
+    for mod in mod_name:
+        print('Searching for "' + mod + '"...', end="")
+        out = api.get_packages_by_name(mod) 
+        if len(out) == 0:
+            out = api.get_packages_by_name(mod, return_deprecated=True)
+            if len(out) == 0:
+                click.secho("| NOT FOUND", fg="red")
+                continue
+        if len(out) == 1:
+            out = out[0]
+        else:
+            if show_all:
+                pprint(out)
+                continue
+            else:
+                print(" Found multiple results, using latest version...", end="")
+                out = sorted(out, key=lambda x: x.get_latest().date_created)[-1]
+        deprecated = out["is_deprecated"]
+        latest = out.get_latest()
+        date_created = latest.date_created.strftime("%Y-%m-%d")
+        if only_latest:
+            out = out.get_latest()
+
+        if deprecated:
+            click.secho("| DEPRECATED", fg="red", nl=False)
+        else:
+            click.secho("| NOT DEPRECATED", fg="green", nl=False)
+        click.secho(" | LATEST VERSION: " + latest.version_number + " | DATE CREATED: " + date_created, fg="blue")
+        if no_suppress:
+            pprint(out)
+        else:
+            continue
 
 @_main.command()
 @click.pass_context
