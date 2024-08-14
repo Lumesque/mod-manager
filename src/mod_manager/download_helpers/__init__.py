@@ -17,17 +17,20 @@ from ..t_api import ModVersion, ThunderstoreAPI
 
 
 class VersionList(NamedTuple):
+    " List for versions and dependencies we ignore for specific names "
     versions: List[ModVersion]
     ignored_dependencies: Optional[List[str]]
 
     @classmethod
     def from_file(cls, json_file):
+        # This is the versions json that is created by ModDownloader
         with open(json_file) as f:
             data = json.load(f)
         ignored_dependencies = data.pop("ignored_dependencies")
         return cls(versions=[ModVersion(**data[x]) for x in data], ignored_dependencies=ignored_dependencies)
 
     def to_dict(self):
+        # This is the versions json that ModDownloader uses
         out = {}
         for vers in self.versions:
             out[vers.full_name] = vers.to_dict()
@@ -38,6 +41,7 @@ class VersionList(NamedTuple):
 @dataclass
 class ModDownloader:
     api: ThunderstoreAPI
+    # These are in case you don't find options, or find too many
     try_deprecated: bool = True
     use_latest_date: bool = True
 
@@ -90,6 +94,17 @@ class ModDownloader:
         return out[0]
 
     def handle_dependencies(self, downloadable_mods, ignore_dependencies=None):
+        """
+        Dependency handler. Checks the length of all unique names vs all the full names
+        of the mods with their respective versions. For example,
+
+        ['BepInEx-2100', 'BepInEx-25400'] will essentially compare
+        {'BepInEx'} vs {'BepInEx-2100', 'BepInEx-25400'}
+
+        in order to see if there is a dependency mismatch
+
+        See check_conflicting_versions for more
+        """
         dependencies = []
         for mod in downloadable_mods:
             latest = mod.get_latest()
@@ -102,6 +117,8 @@ class ModDownloader:
         return dependencies
 
     def check_conflicting_versions(self, full_name_list: List[str], ignore: bool=False ):
+        # TODO make a flag where you choose which version you want to do either in an
+        # interactive mode, or just say you'd like the one that is not deprecated -> latest date
         full_names = set(full_name_list)
         conflicts = Counter(["-".join(x.split("-")[:-1]) for x in full_names])
         for key, count in conflicts.items():
@@ -109,21 +126,3 @@ class ModDownloader:
                 corresponding_versions = {x for x in full_names if key in x}
                 if not ignore:
                     raise ValueError(f"Found conflicting versions for {key}, got={corresponding_versions}")
-
-
-# Taken from online
-def merge(scr_path, dir_path):
-    files = next(os.walk(scr_path))[2]
-    folders = next(os.walk(scr_path))[1]
-    for file in files:  # Copy the files
-        scr_file = scr_path + "/" + file
-        dir_file = dir_path + "/" + file
-        if os.path.exists(dir_file):  # Delete the old files if already exist
-            os.remove(dir_file)
-        shutil.copy(scr_file, dir_file)
-    for folder in folders:  # Merge again with the subdirectories
-        scr_folder = scr_path + "/" + folder
-        dir_folder = dir_path + "/" + folder
-        if not os.path.exists(dir_folder):  # Create the subdirectories if dont already exist
-            os.mkdir(dir_folder)
-        merge(scr_folder, dir_folder)

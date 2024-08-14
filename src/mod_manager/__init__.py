@@ -43,6 +43,10 @@ from .t_api import ThunderstoreAPI
 )
 @click.pass_context
 def _main(ctx, quiet, community, file, package, output_directory, no_save, ignore_dependencies):
+    """
+    Mod manager for thunderstore. This defaults to lethal company. It will create an output folder
+    with the name of the date it was created as well as the community.
+    """ 
     ctx.ensure_object(dict)
     ctx.obj["QUIET"] = quiet
     ctx.obj["COMMUNITY"] = community
@@ -124,13 +128,12 @@ def download(ctx):
 @click.argument("json_file", type=click.Path(exists=True))
 @click.pass_context
 def redownload(ctx, json_file):
-    "Redownload mods from the thunderstore.io website and create a folder of their outputs"
+    "Redownload mods from the thunderstore.io website and create a folder of their outputs using a past versions.json configuration"
     version_list = VersionList.from_file(json_file)
     downloader = ModDownloader(None)
     downloader.download(version_list, ctx.obj["OUTPUT_DIRECTORY"])
     if ctx.obj["SAVE"]:
         downloader.save_version_json(version_list, ctx.obj["OUTPUT_DIRECTORY"])
-
 
 def main(*args, **kwargs):
     return _main(*args, **kwargs, standalone_mode=False)
