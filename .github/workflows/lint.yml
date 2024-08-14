@@ -19,6 +19,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff
 
-      - name: Analyzing code with hatch
+      - name: Analyzing code with ruff
         run: |
           ruff check
