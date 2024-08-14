@@ -80,7 +80,7 @@ def search(ctx, mod_name, only_latest, no_suppress, show_all):
     api = ThunderstoreAPI(ctx.obj["COMMUNITY"], verbose=False)
     for mod in mod_name:
         print('Searching for "' + mod + '"...', end="")
-        out = api.get_packages_by_name(mod) 
+        out = api.get_packages_by_name(mod)
         if len(out) == 0:
             out = api.get_packages_by_name(mod, return_deprecated=True)
             if len(out) == 0:
@@ -88,13 +88,12 @@ def search(ctx, mod_name, only_latest, no_suppress, show_all):
                 continue
         if len(out) == 1:
             out = out[0]
+        elif show_all:
+            pprint(out)
+            continue
         else:
-            if show_all:
-                pprint(out)
-                continue
-            else:
-                print(" Found multiple results, using latest version...", end="")
-                out = sorted(out, key=lambda x: x.get_latest().date_created)[-1]
+            print(" Found multiple results, using latest version...", end="")
+            out = sorted(out, key=lambda x: x.get_latest().date_created)[-1]
         deprecated = out["is_deprecated"]
         latest = out.get_latest()
         date_created = latest.date_created.strftime("%Y-%m-%d")
