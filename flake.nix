@@ -17,6 +17,7 @@
           pp.ipython
           pp.requests
           pp.click
+          pp.twine
         ]))
       ];
     };
@@ -27,6 +28,7 @@
           pp.ipython
           pp.requests
           pp.click
+          pp.twine
         ]))
       ];
     };

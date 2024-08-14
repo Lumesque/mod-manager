@@ -24,7 +24,10 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "click",
+  "requests",
+]
 
 [project.urls]
 Documentation = "https://github.com/Joshua Luckie/mod-manager#readme"
