@@ -19,6 +19,7 @@
           pp.click
           pp.twine
         ]))
+        pkgs.ruff
       ];
     };
     packages.${system}.default = pkgs.symlinkJoin {
@@ -30,6 +31,7 @@
           pp.click
           pp.twine
         ]))
+        pkgs.ruff
       ];
     };
   };
