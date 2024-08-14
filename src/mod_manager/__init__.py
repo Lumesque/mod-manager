@@ -46,7 +46,7 @@ def _main(ctx, quiet, community, file, package, output_directory, no_save, ignor
     """
     Mod manager for thunderstore. This defaults to lethal company. It will create an output folder
     with the name of the date it was created as well as the community.
-    """ 
+    """
     ctx.ensure_object(dict)
     ctx.obj["QUIET"] = quiet
     ctx.obj["COMMUNITY"] = community
@@ -68,15 +68,23 @@ def _main(ctx, quiet, community, file, package, output_directory, no_save, ignor
     ctx.obj["OUTPUT_DIRECTORY"] = output_dir
     ctx.obj["SAVE"] = not no_save
 
+
 @_main.command()
-@click.argument('mod_name', nargs=-1)
-@click.option('-l', '--only-latest', is_flag=True, default=False, help="Only download the latest version")
-@click.option('-n', '--no-suppress', is_flag=True, default=False, help="Show the output of the found package in json format as oppossed to JUST the details of the package")
-@click.option('--show-all', is_flag=True, default=False, help="Show all found variants of the package")
+@click.argument("mod_name", nargs=-1)
+@click.option("-l", "--only-latest", is_flag=True, default=False, help="Only download the latest version")
+@click.option(
+    "-n",
+    "--no-suppress",
+    is_flag=True,
+    default=False,
+    help="Show the output of the found package in json format as oppossed to JUST the details of the package",
+)
+@click.option("--show-all", is_flag=True, default=False, help="Show all found variants of the package")
 @click.pass_context
 def search(ctx, mod_name, only_latest, no_suppress, show_all):
     "Search for mods in the thunderstore.io website"
     from pprint import pprint
+
     api = ThunderstoreAPI(ctx.obj["COMMUNITY"], verbose=False)
     for mod in mod_name:
         print('Searching for "' + mod + '"...', end="")
@@ -110,6 +118,7 @@ def search(ctx, mod_name, only_latest, no_suppress, show_all):
         else:
             continue
 
+
 @_main.command()
 @click.pass_context
 def download(ctx):
@@ -134,6 +143,7 @@ def redownload(ctx, json_file):
     downloader.download(version_list, ctx.obj["OUTPUT_DIRECTORY"])
     if ctx.obj["SAVE"]:
         downloader.save_version_json(version_list, ctx.obj["OUTPUT_DIRECTORY"])
+
 
 def main(*args, **kwargs):
     return _main(*args, **kwargs, standalone_mode=False)

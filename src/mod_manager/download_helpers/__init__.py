@@ -1,7 +1,6 @@
 import io
 import json
 import os
-import shutil
 import warnings
 import zipfile
 from collections import Counter
@@ -17,7 +16,8 @@ from ..t_api import ModVersion, ThunderstoreAPI
 
 
 class VersionList(NamedTuple):
-    " List for versions and dependencies we ignore for specific names "
+    "List for versions and dependencies we ignore for specific names"
+
     versions: List[ModVersion]
     ignored_dependencies: Optional[List[str]]
 
@@ -106,6 +106,8 @@ class ModDownloader:
         See check_conflicting_versions for more
         """
         dependencies = []
+        if ignore_dependencies is None:
+            ignore_dependencies = []
         for mod in downloadable_mods:
             latest = mod.get_latest()
             if latest.name in ignore_dependencies:
@@ -116,8 +118,8 @@ class ModDownloader:
         self.check_conflicting_versions(dependencies)
         return dependencies
 
-    def check_conflicting_versions(self, full_name_list: List[str], ignore: bool=False ):
-        # TODO make a flag where you choose which version you want to do either in an
+    def check_conflicting_versions(self, full_name_list: List[str], ignore: bool = False):
+        # TODO: make a flag where you choose which version you want to do either in an
         # interactive mode, or just say you'd like the one that is not deprecated -> latest date
         full_names = set(full_name_list)
         conflicts = Counter(["-".join(x.split("-")[:-1]) for x in full_names])

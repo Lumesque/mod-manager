@@ -4,8 +4,7 @@ class PackageMissingError(Exception):
 
 
 class InvalidVersionError(Exception):
-    def __init__(self, pkg, version):
-        super().__init__(f"Version {version} for pkg {pkg} is missing from given index")
+    pass
 
 
 class InvalidCommunityError(Exception):

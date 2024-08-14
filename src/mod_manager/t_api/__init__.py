@@ -22,9 +22,10 @@ def cache_if_hasnt(func):
 class ModVersion:
     """
     Dataclass for a mod download API request from the thunderstore. The
-    dates are automatically converted for date_created, so that this can 
+    dates are automatically converted for date_created, so that this can
     be used for sorting later
     """
+
     name: str
     full_name: str
     description: str
@@ -60,7 +61,8 @@ class ModVersion:
 
 
 class Mod(UserDict):
-    " A wrapper around a dictionary for easier access to getting the latest or differing versions"
+    "A wrapper around a dictionary for easier access to getting the latest or differing versions"
+
     def get_latest(self):
         return self.data["versions"][0]
 
@@ -81,7 +83,8 @@ class Mod(UserDict):
 
 @dataclass
 class ThunderstoreAPI:
-    " Class for interacting with the thunderstore api, and caching results for names "
+    "Class for interacting with the thunderstore api, and caching results for names"
+
     community: str
     verbose: bool = field(default=True)
     lazy_cache: bool = field(default=False)
@@ -113,7 +116,7 @@ class ThunderstoreAPI:
         return [Mod(_out) for _out in r.json()]
 
     def _parse_pkg_item(self, pkg_dict, copy=False) -> Dict[str, Union[str, List[ModVersion]]]:
-        " Parse the request and return a dictionary with valid ModVersion classes "
+        "Parse the request and return a dictionary with valid ModVersion classes"
         if copy:
             pkg_dict = pkg_dict.copy()
         version_attrs = [x.name for x in fields(ModVersion)]
@@ -125,7 +128,7 @@ class ThunderstoreAPI:
         return pkg_dict
 
     def _cache_pkg_by_name(self):
-        " Cache the index of package names "
+        "Cache the index of package names"
         # Names are not exclusive, use index instead for later grabbing
         for i, _obj in enumerate(self.package_index):
             pkg_name = _obj["name"]
@@ -133,7 +136,7 @@ class ThunderstoreAPI:
 
     @cache_if_hasnt
     def get_packages_by_name(self, name, return_deprecated=False):
-        " Get package by the name "
+        "Get package by the name"
         # We can get multiple package names, so cacheing becomes difficult
         pkgs = [self.package_index[i] for i in self._cache_index_by_name[name] if name in self._cache_index_by_name]
         return [
@@ -143,8 +146,8 @@ class ThunderstoreAPI:
         ]
 
     def get_package_by_fullname(self, fullname, version, owner=None):
-        " Get package by the full name, owner, and/or version "
-        #NOTE I don't know if this is consistent enough
+        "Get package by the full name, owner, and/or version"
+        # NOTE I don't know if this is consistent enough
         _items = self.get_packages_by_name(fullname.split("-")[1], return_deprecated=True)
         for item in _items:
             if matches(item, fullname, owner):
@@ -156,15 +159,15 @@ class ThunderstoreAPI:
                 return vers
         raise PackageMissingError(f"Could not find a package with fullname {fullname} and owner {owner}")
 
-    # TODO make this not a pass in argument? Verbose is probably the wrong word
+    # TODO: make this not a pass in argument? Verbose is probably the wrong word
     def log(self, msg):
-        " This is just for the beginning, everything else is done by click "
+        "This is just for the beginning, everything else is done by click"
         if self.verbose:
             print(msg)
 
 
 def matches(_dict, full_name, owner=None):
-    " Match dictionary keys and see if this is a valid comparison "
+    "Match dictionary keys and see if this is a valid comparison"
     matches = []
     if owner is None:
         matches.append(True)
