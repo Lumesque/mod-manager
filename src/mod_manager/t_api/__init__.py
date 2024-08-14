@@ -32,7 +32,7 @@ class ModVersion:
     version_number: str
     dependencies: list
     download_url: str
-    downloads: int
+    downloads: int = field(compare=False)
     date_created: str
     website_url: str
     is_active: bool
