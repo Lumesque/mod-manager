@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mod-manager"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Joshua Luckie", email = "luckiejoshu@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/Joshua Luckie/mod-manager#readme"
+Issues = "https://github.com/Joshua Luckie/mod-manager/issues"
+Source = "https://github.com/Joshua Luckie/mod-manager"
+
+[tool.hatch.version]
+path = "src/mod_manager/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/mod_manager tests}"
+
+[tool.coverage.run]
+source_pkgs = ["mod_manager", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/mod_manager/__about__.py",
+]
+
+[tool.coverage.paths]
+mod_manager = ["src/mod_manager", "*/mod-manager/src/mod_manager"]
+tests = ["tests", "*/mod-manager/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
