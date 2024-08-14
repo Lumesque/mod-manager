@@ -6,6 +6,7 @@ docstring-code-line-length = 80
 
 [lint]
 select = [
+  "SLF001",
   "A001",
   "A002",
   "A003",
@@ -431,7 +432,6 @@ select = [
   "SIM300",
   "SIM910",
   "SIM911",
-  "SLF001",
   "SLOT000",
   "SLOT001",
   "SLOT002",
@@ -519,6 +519,7 @@ select = [
   "PLR6301",
   "S",
   "TID252",
+  "SLF001",
 ]
 
 [lint.flake8-tidy-imports]
