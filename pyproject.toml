@@ -30,9 +30,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/Joshua Luckie/mod-manager#readme"
-Issues = "https://github.com/Joshua Luckie/mod-manager/issues"
-Source = "https://github.com/Joshua Luckie/mod-manager"
+Documentation = "https://github.com/Lumesque/mod-manager#readme"
+Issues = "https://github.com/Lumesque/mod-manager/issues"
+Source = "https://github.com/Lumesque/mod-manager"
 
 [project.scripts]
 tmm = "mod_manager:_main"
