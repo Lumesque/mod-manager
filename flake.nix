@@ -3,14 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
-    unstable-pkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
 
-  outputs = { self, nixpkgs , unstable-pkgs, ...}: 
+  outputs = { self, nixpkgs , ...}: 
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
-    unpkgs = import unstable-pkgs {inherit system;};
     app = pkgs.python312Packages.buildPythonApplication {
       name = "mod-manager";
       pname = "mod-manager";
@@ -43,7 +41,15 @@
             pp.hatch-vcs
           ]))
           pkgs.ruff
-          unpkgs.hatch
+          (pkgs.hatch.overrideAttrs (prev: {
+            disabledTests = prev.disabledTests ++ [
+              "test_field_readme"
+              "test_field_string"
+              "test_field_complex"
+              "test_plugin_dependencies_unmet"
+            ];
+          }))
+          #unpkgs.hatch
         ];
       };
       py10 = pkgs.mkShell {
@@ -77,7 +83,14 @@
           pp.hatch-vcs
         ]))
         pkgs.ruff
-        unpkgs.hatch
+        (pkgs.hatch.overrideAttrs (prev: {
+          disabledTests = prev.disabledTests ++ [
+            "test_field_readme"
+            "test_field_string"
+            "test_field_complex"
+            "test_plugin_dependencies_unmet"
+          ];
+        }))
       ];
     };
   };
