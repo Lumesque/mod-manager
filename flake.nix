@@ -11,16 +11,27 @@
     pkgs = import nixpkgs {inherit system;};
   in
   {
-    devShells.${system}.default = pkgs.mkShell {
-      packages = [
-        (pkgs.python312.withPackages (pp: [
-          pp.ipython
-          pp.requests
-          pp.click
-          pp.twine
-        ]))
-        pkgs.ruff
-      ];
+    devShells.${system} = {
+      default = pkgs.mkShell {
+        packages = [
+          (pkgs.python312.withPackages (pp: [
+            pp.ipython
+            pp.requests
+            pp.click
+            pp.twine
+          ]))
+          pkgs.ruff
+        ];
+      };
+      py10 = pkgs.mkShell {
+        packages = [
+          (pkgs.python39.withPackages (pp: [
+#            pp.ipython
+            pp.requests
+            pp.click
+          ]))
+        ];
+      };
     };
     packages.${system}.default = pkgs.symlinkJoin {
       name = "nix shell developer env";

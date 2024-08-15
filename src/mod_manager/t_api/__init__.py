@@ -1,11 +1,28 @@
+import sys
 from collections import UserDict, defaultdict
 from dataclasses import dataclass, field, fields
-from datetime import datetime
 from typing import Dict, List, Union
 
 import requests
 
 from ..exceptions import InvalidVersionError, PackageMissingError
+
+MINIMUM_PY_VERS = 3
+DATE_TIME_VERS_DIFF = 11
+if sys.version_info.major < MINIMUM_PY_VERS:
+    raise RuntimeError("Python 2 is not supported")
+elif sys.version_info.major == MINIMUM_PY_VERS and sys.version_info.minor < DATE_TIME_VERS_DIFF:
+    from datetime import datetime as __datetime__
+
+    class datetime:
+        def fromisoformat(s):
+            # Datetime for python prior to 3.11 does not support hte Z
+            # format
+            if s.endswith("Z"):
+                return __datetime__.fromisoformat(s.split(".")[0])
+            return __datetime__.fromisoformat(s)
+else:
+    from datetime import datetime
 
 
 def cache_if_hasnt(func):
