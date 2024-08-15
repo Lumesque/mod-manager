@@ -58,10 +58,18 @@
             pp.requests
             pp.click
           ]))
+          (pkgs.hatch.overrideAttrs (prev: {
+            disabledTests = prev.disabledTests ++ [
+              "test_field_readme"
+              "test_field_string"
+              "test_field_complex"
+              "test_plugin_dependencies_unmet"
+            ];
+          }))
         ];
       };
 
-      current = pkgs.mkShell {
+      dev-build = pkgs.mkShell {
         packages = [
           (pkgs.python312.withPackages (pp: [
             pp.hatchling
