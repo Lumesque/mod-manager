@@ -26,3 +26,8 @@ jobs:
       - name: Running tests with hatch
         run: |
           hatch test -vv
+
+      - name: Testing pip install
+        run: |
+          pip install .
+          tmm --version
