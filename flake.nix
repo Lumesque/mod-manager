@@ -3,12 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    unstable-pkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
 
-  outputs = { self, nixpkgs }: 
+  outputs = { self, nixpkgs , unstable-pkgs, ...}: 
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
+    unpkgs = import unstable-pkgs {inherit system;};
     app = pkgs.python312Packages.buildPythonApplication {
       name = "mod-manager";
       pname = "mod-manager";
@@ -37,8 +39,11 @@
             pp.requests
             pp.click
             pp.twine
+            pp.hatchling
+            pp.hatch-vcs
           ]))
           pkgs.ruff
+          unpkgs.hatch
         ];
       };
       py10 = pkgs.mkShell {
@@ -59,7 +64,6 @@
           app
         ];
       };
-
     };
     packages.${system}.default = pkgs.symlinkJoin {
       name = "nix shell developer env";
@@ -69,8 +73,11 @@
           pp.requests
           pp.click
           pp.twine
+          pp.hatchling
+          pp.hatch-vcs
         ]))
         pkgs.ruff
+        unpkgs.hatch
       ];
     };
   };
