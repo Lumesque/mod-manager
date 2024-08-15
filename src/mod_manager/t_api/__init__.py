@@ -19,7 +19,7 @@ elif sys.version_info.major == MINIMUM_PY_VERS and sys.version_info.minor < DATE
             # Datetime for python prior to 3.11 does not support hte Z
             # format
             if s.endswith("Z"):
-                return __datetime__.fromisoformat(s.split(".")[0])
+                return __datetime__.fromisoformat(s[:-1] + "+00:00")
             return __datetime__.fromisoformat(s)
 else:
     from datetime import datetime
