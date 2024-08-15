@@ -9,6 +9,24 @@
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
+    app = pkgs.python312Packages.buildPythonApplication {
+      name = "mod-manager";
+      pname = "mod-manager";
+      format = "pyproject";
+      src = ./.;
+      nativeBuildInputs = [
+        (pkgs.python312.withPackages (pp: [
+          pp.hatchling
+          pp.hatch-vcs
+        ]))
+      ];
+      propagatedBuildInputs = [
+        (pkgs.python312.withPackages (pp: [
+          pp.click
+          pp.requests
+        ]))
+      ];
+    };
   in
   {
     devShells.${system} = {
@@ -26,12 +44,22 @@
       py10 = pkgs.mkShell {
         packages = [
           (pkgs.python39.withPackages (pp: [
-#            pp.ipython
             pp.requests
             pp.click
           ]))
         ];
       };
+
+      current = pkgs.mkShell {
+        packages = [
+          (pkgs.python312.withPackages (pp: [
+            pp.hatchling
+            pp.hatch-vcs
+          ]))
+          app
+        ];
+      };
+
     };
     packages.${system}.default = pkgs.symlinkJoin {
       name = "nix shell developer env";
