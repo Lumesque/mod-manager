@@ -152,6 +152,10 @@ class ThunderstoreAPI:
             self._cache_index_by_name[pkg_name].append(i)
 
     @cache_if_hasnt
+    def name_keys(self):
+        return self._cache_index_by_name.keys()
+
+    @cache_if_hasnt
     def get_packages_by_name(self, name, return_deprecated=False):
         "Get package by the name"
         # We can get multiple package names, so cacheing becomes difficult
