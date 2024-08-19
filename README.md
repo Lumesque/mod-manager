@@ -29,7 +29,7 @@ mod-manager is a command line utility meant to help in downloading, searching, a
 
 mod-manager works by using click context in order to pass around flags and values to the underlying commands. For this reason, most of the options that are necessary will need to be given to the main `tmm` command
 
-It has 3 main utilities that get installed as a python binary under `tmm`
+It has 4 main utilities that get installed as a python binary under `tmm`
 1. `tmm download`
     * `tmm download` takes no arguments in and of itself, but uses all the flags of the main top command. Heres an example command for downloading 'BepInExPack'
     ```bash
@@ -42,7 +42,9 @@ It has 3 main utilities that get installed as a python binary under `tmm`
     ```
 3. `tmm fsearch`
     * `tmm fsearch` searches through the index using a simple Fuzzy searching algorithm, and returns found deprecated and non-deprecated packages. To exclude deprecated packages, use `--no-deprecated` or `-n`. If you want to search case insensitive, use the `-i` or `--case-insensitive` flag
-4. `tmm search` DEPRECATED
+4. `tmm dsearch`
+    * `tmm dsearch` searches through the index package descriptions using a simple Fuzzy searching algorithm, and returns the found full-name packages that match. If you want to use the case insensitive flag, use the `-i` flag
+5. `tmm search` DEPRECATED
     * `tmm search` IS DEPRECATED, and will not be kept/upheld. For the current search, see [Fuzzy Searching](#fuzzy-searching)
     * `tmm search` takes any amount of arguments for searching using the package\_index that thunderstore provides. To show the actual output from the commands, you can use the `--no-suppress` flag to see what the script would grab for that specific variable, and `--only-latest` to only see the latest if you do choose to not suppress the output
     * The output looks like this
@@ -77,6 +79,22 @@ Foundentry(match_positions=[2], count=1, fullstring='AAA', percentmatch=0.33),
 ]
 ```
 
+To use an object in the index, there is an `extractor` option that allows for you to put in objects but tell the class how to get the string out
+```python
+from collections import namedtuple
+Example = namedtuple("Example", ["name", "search"])
+searcher = FuzzyFind([Example("name", "description")], extractor = lambda x: x.search)
+```
+
+The searcher will work as normal, searching through the properties of those objects
+
+```python
+searcher.search("desc")
+[
+FoundEntry(match_positions=[0,1,2,3], count=4, fullstring=Example(name="name", search="description"), percentmatch=1.0)
+]
+```
+
 ## Full list of arguments
 
 1. `tmm`
@@ -99,7 +117,10 @@ Foundentry(match_positions=[2], count=1, fullstring='AAA', percentmatch=0.33),
     1. `-n`, `--no-deprecated`, Don't include deprecated packages in search
     2. `-l`, `--limit`, Match limit for fuzzy finder, defaults to length of string passed in
     3. `-i`, `--case-insensitive`, Search for packages without case sensitivity
-5. `search` DEPRECATED
+5. `dsearch`
+    1. `-l`, `--limit`, Match limit for fuzzy finder, defaults to length of string passed in
+    2. `-i`, `--case-insensitive`, Search without case sensitivity
+6. `search` DEPRECATED
     1. `-l`, `--only-latest`, only show the latest version when outputing with `--no-suppression`
     2. `--show-all`, show all variants of the found mod and continue without looking further into the mod
     3. `-n`, `--no-suppress`, Output the json package data found from the thunderstore api
