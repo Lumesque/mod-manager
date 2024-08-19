@@ -68,3 +68,6 @@ exclude_lines = [
 
 [tool.ruff]
 extend = "./ruff_defaults.toml"
+
+[tool.pytest.ini_options]
+pythonpath = ["./src"]

@@ -39,6 +39,7 @@
             pp.twine
             pp.hatchling
             pp.hatch-vcs
+            pp.pytest
           ]))
           pkgs.ruff
           (pkgs.hatch.overrideAttrs (prev: {
@@ -74,6 +75,7 @@
           (pkgs.python312.withPackages (pp: [
             pp.hatchling
             pp.hatch-vcs
+            pp.pytest
           ]))
           app
         ];
@@ -89,6 +91,7 @@
           pp.twine
           pp.hatchling
           pp.hatch-vcs
+          pp.pytest
         ]))
         pkgs.ruff
         (pkgs.hatch.overrideAttrs (prev: {
