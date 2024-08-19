@@ -53,11 +53,6 @@ class FuzzyFind:
         return self._search(value=value, limit=limit, case_insensitive=case_insensitive)
 
     def _search(self, value, limit, case_insensitive):
-        # if case_insensitive:
-        # iterable = (x.lower() for x in self.iterable)
-        # value = value.lower()
-        # else:
-        # iterable = iter(self.iterable)
         founds = []
         for _str in iter(self.iterable):
             found = self.__count(value, _str, limit, case_insensitive=case_insensitive)
@@ -79,7 +74,8 @@ class FuzzyFind:
             count = 0
             match_positions = []
             for num, (x, y) in enumerate(zip(value, pair)):
-                if x == y:
+                # Check to make sure they aren't spaces
+                if x == y and x and y:
                     count += 1
                     match_positions.append(num + i)
             if count >= limit:
