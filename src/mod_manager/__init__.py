@@ -85,6 +85,7 @@ def _main(ctx, quiet, community, file, package, output_directory, no_save, ignor
 )
 @click.pass_context
 def fsearch(ctx, mod_name, no_deprecated, limit, case_insensitive):
+    "Search for mods in the thunderstore.io website using fuzzy search on the package names"
     api = ThunderstoreAPI(ctx.obj["COMMUNITY"], verbose=False)
     mods = set(api.name_keys())
     searcher = FuzzyFind(mods)
