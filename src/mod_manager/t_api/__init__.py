@@ -170,7 +170,7 @@ class ThunderstoreAPI:
         "Get package by the full name, owner, and/or version"
         # NOTE I don't know if this is consistent enough
         _items = self.get_packages_by_name(fullname.split("-")[1], return_deprecated=True)
-        fullname_no_version = "-".join(fullname.split("-")[:-1])
+        fullname_no_version = "-".join(fullname.split("-")[:2])
         for item in _items:
             if matches(item, fullname_no_version, owner):
                 if version is None:
