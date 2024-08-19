@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable, List, NamedTuple, Optional
+from typing import Callable, Iterable, List, NamedTuple, Optional
 
 
 class FoundEntry(NamedTuple):
@@ -14,9 +14,10 @@ class FuzzyFind:
     "Simple fuzzy search algorithm"
 
     iterable: Iterable[str]
+    extractor: Callable = lambda x: x
 
     def __post_init__(self):
-        if not all(isinstance(x, str) for x in self.iterable):
+        if not all(isinstance(self.extractor(x), str) for x in self.iterable):
             raise TypeError(f"Expected iterable type to be a list of strings, got='{self.iterable}'")
 
     # This scan will search left to right until any match is found, and return the
@@ -68,10 +69,10 @@ class FuzzyFind:
         counts = []
         size = len(value)
         if case_insensitive:
-            search_str = string.lower()
+            search_str = self.extractor(string).lower()
             value = value.lower()
         else:
-            search_str = string
+            search_str = self.extractor(string)
         # Use i so we can refer to it in match_positions
         for i in range(size):
             pair = search_str[i : i + size]

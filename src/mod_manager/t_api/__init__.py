@@ -166,17 +166,21 @@ class ThunderstoreAPI:
             if (return_deprecated or not _maybe_deprecated["is_deprecated"])
         ]
 
-    def get_package_by_fullname(self, fullname, version, owner=None):
+    def get_package_by_fullname(self, fullname, version=None, owner=None):
         "Get package by the full name, owner, and/or version"
         # NOTE I don't know if this is consistent enough
         _items = self.get_packages_by_name(fullname.split("-")[1], return_deprecated=True)
+        fullname_no_version = "-".join(fullname.split("-")[:-1])
         for item in _items:
-            if matches(item, fullname, owner):
-                vers = item.get_version(version)
-                if vers is None:
-                    raise InvalidVersionError(
-                        f"Could not find a version {version} for {fullname}, available_versions: {item.versions}"
-                    )
+            if matches(item, fullname_no_version, owner):
+                if version is None:
+                    vers = item.get_latest()
+                else:
+                    vers = item.get_version(version)
+                    if vers is None:
+                        raise InvalidVersionError(
+                            f"Could not find a version {version} for {fullname}, available_versions: {item.versions}"
+                        )
                 return vers
         raise PackageMissingError(f"Could not find a package with fullname {fullname} and owner {owner}")
 

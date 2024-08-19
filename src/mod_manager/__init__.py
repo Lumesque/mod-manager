@@ -114,6 +114,45 @@ def fsearch(ctx, mod_name, no_deprecated, limit, case_insensitive):
             click.secho(f"\tLatest version: {latest.version_number}")
 
 
+@_main.command()
+@click.argument("mod_name", nargs=1)
+@click.option(
+    "-l",
+    "--limit",
+    type=int,
+    help="Limit for searching fuzzy finder, defaults to the length of the string",
+    default=None,
+)
+@click.option(
+    "-i", "--case-insensitive", is_flag=True, default=False, help="Search for packages without case sensitivity"
+)
+@click.pass_context
+def dsearch(ctx, mod_name, limit, case_insensitive):
+    "Searches descriptions on the store and returns what it finds"
+    api = ThunderstoreAPI(ctx.obj["COMMUNITY"], verbose=False)
+    mods = {(x.get_latest()["full_name"], x.get_latest()["description"]) for x in api.package_index}
+    searcher = FuzzyFind(mods, extractor=lambda x: x[1])
+    out = searcher.search(mod_name, limit=limit, case_insensitive=case_insensitive)
+    for found in out:
+        click.secho()
+        click.secho(f"name: {found.fullstring[0]}", nl=True)
+        mod = api.get_package_by_fullname(found.fullstring[0])
+        click.secho("\tDeprecated: ", nl=False)
+        if not mod.is_active:
+            click.secho("True", fg="red")
+        else:
+            click.secho("False", fg="green")
+        click.secho("\tDescription: ", nl=False)
+        for i, _str in enumerate(mod.description):
+            if i in found.match_positions:
+                click.secho(_str, fg="red", nl=False)
+            else:
+                click.secho(_str, nl=False)
+        click.secho()
+        click.secho(f"\tLatest release date: {mod.date_created}")
+        click.secho(f"\tLatest version: {mod.version_number}")
+
+
 @_main.command(deprecated=True)
 @click.argument("mod_name", nargs=-1)
 @click.option("-l", "--only-latest", is_flag=True, default=False, help="Only download the latest version")
