@@ -58,13 +58,19 @@ class ModDownloader:
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(output_directory)
 
-    def get_download_list_by_name(self, list_of_mods, ignore_dependencies=None):
+    def get_download_list_by_name(self, list_of_mods, ignore_dependencies=None, full_names=None):
+        if full_names is None:
+            full_names = []
         mod_names = [self._get_mod_by_name(mod_name) for mod_name in list_of_mods]
-        mod_names = self.handle_dependencies(mod_names, ignore_dependencies)
+        mod_names = self.handle_dependencies(mod_names, ignore_dependencies, full_names)
         out = [
             self.api.get_package_by_fullname(f"{owner}-{name}", owner=owner, version=version)
             for owner, name, version in [x.split("-") for x in set(mod_names)]
         ]
+        return VersionList(reduce(lambda x, y: x + y, out), ignore_dependencies)
+
+    def get_download_list_by_fullname(self, list_of_fullnames, ignore_dependencies=None):
+        out = [self.api.get_package_by_fullname(x) for x in list_of_fullnames]
         return VersionList(reduce(lambda x, y: x + y, out), ignore_dependencies)
 
     def save_version_json(self, version_list, output_dir):
@@ -93,7 +99,7 @@ class ModDownloader:
                 raise ValueError(f"Got multiple versions/names for {mod_name}, try using full name instead")
         return out[0]
 
-    def handle_dependencies(self, downloadable_mods, ignore_dependencies=None):
+    def handle_dependencies(self, downloadable_mods, ignore_dependencies=None, wanted_versions=None):
         """
         Dependency handler. Checks the length of all unique names vs all the full names
         of the mods with their respective versions. For example,
@@ -108,6 +114,10 @@ class ModDownloader:
         dependencies = []
         if ignore_dependencies is None:
             ignore_dependencies = []
+        if wanted_versions is None:
+            wanted_versions = []
+        else:
+            dependencies += wanted_versions
         for mod in downloadable_mods:
             latest = mod.get_latest()
             if latest.name in ignore_dependencies:

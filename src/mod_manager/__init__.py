@@ -53,6 +53,7 @@ def _main(ctx, quiet, community, file, package, output_directory, no_save, ignor
     ctx.obj["COMMUNITY"] = community
     package = list(package)
     ignore_dependencies = list(ignore_dependencies)
+    full_packages = []
     if file is not None:
         with open(file) as file:
             for line in file.readlines():
@@ -60,8 +61,12 @@ def _main(ctx, quiet, community, file, package, output_directory, no_save, ignor
                 for x in extras:
                     if x == "ignore-dependencies":
                         ignore_dependencies.append(pkg)
-                package.append(pkg)
+                if "-" in pkg:
+                    full_packages.append(pkg)
+                else:
+                    package.append(pkg)
     ctx.obj["MODS"] = package
+    ctx.obj["FULL_PACKAGES"] = full_packages
     ctx.obj["IGNORE_DEPENDENCIES"] = ignore_dependencies
     current_time = datetime.now().strftime("%Y_%m_%d")
     output_dir = Path(output_directory, f"lethal-company-mods_{current_time}")
@@ -210,7 +215,7 @@ def download(ctx):
     api = ThunderstoreAPI(ctx.obj["COMMUNITY"], verbose=not ctx.obj["QUIET"])
     downloader = ModDownloader(api)
     version_list = downloader.get_download_list_by_name(
-        ctx.obj["MODS"], ignore_dependencies=ctx.obj["IGNORE_DEPENDENCIES"]
+        ctx.obj["MODS"], ignore_dependencies=ctx.obj["IGNORE_DEPENDENCIES"], full_names=ctx.obj["FULL_PACKAGES"]
     )
     downloader.download(version_list, ctx.obj["OUTPUT_DIRECTORY"])
     if ctx.obj["SAVE"]:
